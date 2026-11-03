@@ -3,13 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme.dart';
 import '../auth/auth_provider.dart';
-import 'login_screen.dart';
 
-class RoleSelectScreen extends StatelessWidget {
+class RoleSelectScreen extends ConsumerWidget {
   const RoleSelectScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: AppTheme.primaryYellow,
       body: SafeArea(
@@ -19,7 +18,6 @@ class RoleSelectScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 24),
-              // Logo
               Row(
                 children: [
                   Container(
@@ -52,8 +50,7 @@ class RoleSelectScreen extends StatelessWidget {
                 title: 'Customer',
                 subtitle: 'Order food and track your delivery live.',
                 color: AppTheme.primaryOrange,
-                onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => const LoginScreen(role: Role.customer))),
+                onTap: () => ref.read(authProvider.notifier).selectRole(Role.customer),
               ),
               const SizedBox(height: 12),
               _RoleCard(
@@ -61,13 +58,11 @@ class RoleSelectScreen extends StatelessWidget {
                 title: 'Delivery Partner',
                 subtitle: 'Pick up orders and deliver them.',
                 color: AppTheme.freshGreen,
-                onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => const LoginScreen(role: Role.driver))),
+                onTap: () => ref.read(authProvider.notifier).selectRole(Role.driver),
               ),
               const SizedBox(height: 24),
               FilledButton(
-                onPressed: () => Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => const LoginScreen(role: Role.customer))),
+                onPressed: () => ref.read(authProvider.notifier).selectRole(Role.customer),
                 style: FilledButton.styleFrom(backgroundColor: AppTheme.darkButton),
                 child: const Text('Start with email or phone'),
               ),

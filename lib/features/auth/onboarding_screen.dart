@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme.dart';
+import '../auth/auth_provider.dart';
 import 'role_select_screen.dart';
 
-class OnboardingScreen extends StatefulWidget {
+class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
 
   @override
-  State<OnboardingScreen> createState() => _OnboardingScreenState();
+  ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
-class _OnboardingScreenState extends State<OnboardingScreen> {
+class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final _controller = PageController();
   int _page = 0;
 
@@ -30,7 +32,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     if (_page < _pages.length - 1) {
       _controller.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
     } else {
-      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => RoleSelectScreen()));
+      ref.read(authProvider.notifier).start();
     }
   }
 
@@ -45,7 +47,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             Align(
               alignment: Alignment.topRight,
               child: TextButton(
-                onPressed: () => Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const RoleSelectScreen())),
+                onPressed: () => ref.read(authProvider.notifier).start(),
                 child: const Text('Skip', style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w600)),
               ),
             ),

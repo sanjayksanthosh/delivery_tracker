@@ -5,8 +5,7 @@ import '../../core/theme.dart';
 import '../auth/auth_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
-  final Role role;
-  const LoginScreen({super.key, required this.role});
+  const LoginScreen({super.key});
 
   @override
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
@@ -28,18 +27,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _submit() async {
     if (!_form.currentState!.validate()) return;
+    final role = ref.read(pendingRoleProvider);
+    if (role == null) return;
     setState(() => _loading = true);
-    final ok = await ref.read(authProvider.notifier).login(_name.text, widget.role);
+    await ref.read(authProvider.notifier).login(_name.text, role);
     if (!mounted) return;
     setState(() => _loading = false);
-    if (ok) Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
-    final isCustomer = widget.role == Role.customer;
+    final role = ref.watch(pendingRoleProvider) ?? Role.customer;
+    final isCustomer = role == Role.customer;
     return Scaffold(
-      appBar: AppBar(leading: BackButton(onPressed: () => Navigator.of(context).pop())),
+      appBar: AppBar(leading: BackButton(onPressed: () => ref.read(authProvider.notifier).clearRole())),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
