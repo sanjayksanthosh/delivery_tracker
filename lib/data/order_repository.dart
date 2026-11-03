@@ -91,7 +91,8 @@ class OrderRepository {
 
   final List<Order> _orders = [];
   final _controller = StreamController<List<Order>>.broadcast();
-  Timer? _simTimer;
+  Timer? _statusTimer;
+  Timer? _moveTimer;
 
   Stream<List<Order>> get ordersStream => _controller.stream;
   List<Order> get orders => List.unmodifiable(_orders);
@@ -123,47 +124,62 @@ class OrderRepository {
     );
     _orders.insert(0, order);
     _emit();
-    _startSimulation(order);
+    _runLifecycle(order);
     return order;
   }
 
-  void _startSimulation(Order order) {
-    _simTimer?.cancel();
-    int tick = 0;
-    _simTimer = Timer.periodic(const Duration(seconds: 4), (t) {
-      tick++;
+  void _runLifecycle(Order order) {
+    // Status progression: placed -> preparing (2s) -> outForDelivery (5s) -> auto-deliver (16s)
+    int elapsed = 0;
+    _statusTimer?.cancel();
+    _statusTimer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (order.status.isTerminal) {
+        t.cancel();
+        _moveTimer?.cancel();
+        return;
+      }
+      elapsed++;
+      if (elapsed == 2 && order.status == OrderStatus.placed) {
+        order.status = OrderStatus.preparing;
+        _emit();
+      } else if (elapsed == 5 && order.status == OrderStatus.preparing) {
+        order.status = OrderStatus.outForDelivery;
+        order.driverLat = order.restaurantLat;
+        order.driverLng = order.restaurantLng;
+        _emit();
+        _startMovement(order);
+      } else if (elapsed >= 16 && order.status == OrderStatus.outForDelivery) {
+        order.status = OrderStatus.delivered;
+        order.driverLat = order.customerLat;
+        order.driverLng = order.customerLng;
+        _emit();
+        t.cancel();
+        _moveTimer?.cancel();
+      }
+    });
+  }
+
+  void _startMovement(Order order) {
+    _moveTimer?.cancel();
+    const steps = 60; // ~12s at 200ms
+    int i = 0;
+    _moveTimer = Timer.periodic(const Duration(milliseconds: 200), (t) {
+      if (order.status != OrderStatus.outForDelivery) {
         t.cancel();
         return;
       }
-      // advance status
-      if (tick == 2 && order.status == OrderStatus.placed) {
-        order.status = OrderStatus.preparing;
-      } else if (tick == 4 && order.status == OrderStatus.preparing) {
-        order.status = OrderStatus.outForDelivery;
-        // assign driver
-        order.driverLat = drivers[0].lat;
-        order.driverLng = drivers[0].lng;
-      } else if (tick >= 9 && order.status == OrderStatus.outForDelivery) {
-        order.status = OrderStatus.delivered;
-        t.cancel();
-      }
-      // move driver toward customer while out for delivery
-      if (order.status == OrderStatus.outForDelivery) {
-        final frac = (tick - 4) / 5.0;
-        final f = frac.clamp(0.0, 1.0);
-        order.driverLat = order.restaurantLat + (order.customerLat - order.restaurantLat) * f;
-        order.driverLng = order.restaurantLng + (order.customerLng - order.restaurantLng) * f;
-      }
+      i++;
+      final frac = (i / steps).clamp(0.0, 1.0);
+      order.driverLat = order.restaurantLat + (order.customerLat - order.restaurantLat) * frac;
+      order.driverLng = order.restaurantLng + (order.customerLng - order.restaurantLng) * frac;
       _emit();
+      if (i >= steps) t.cancel();
     });
   }
 
   void acceptOrder(String orderId, Driver driver) {
     final o = _orders.firstWhere((e) => e.id == orderId);
-    o.status = OrderStatus.outForDelivery;
-    o.driverLat = driver.lat;
-    o.driverLng = driver.lng;
+    if (o.status == OrderStatus.placed) o.status = OrderStatus.preparing;
     _emit();
   }
 
@@ -173,8 +189,14 @@ class OrderRepository {
       o.status = OrderStatus.preparing;
     } else if (o.status == OrderStatus.preparing) {
       o.status = OrderStatus.outForDelivery;
+      o.driverLat = o.restaurantLat;
+      o.driverLng = o.restaurantLng;
+      _startMovement(o);
     } else if (o.status == OrderStatus.outForDelivery) {
       o.status = OrderStatus.delivered;
+      o.driverLat = o.customerLat;
+      o.driverLng = o.customerLng;
+      _moveTimer?.cancel();
     }
     _emit();
   }
@@ -185,7 +207,7 @@ class OrderRepository {
   List<Order> availableForDriver() =>
       _orders.where((o) => o.status == OrderStatus.placed || o.status == OrderStatus.preparing).toList();
 
-  List<Order> activeForDriver(String driverId) =>
+  List<Order> activeForDriver() =>
       _orders.where((o) => o.status == OrderStatus.outForDelivery).toList();
 }
 
