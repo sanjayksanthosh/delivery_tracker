@@ -37,13 +37,13 @@ class DeliveryMap extends StatelessWidget {
         point: LatLng(restaurantLat, restaurantLng),
         width: 44,
         height: 44,
-        child: _Pin(color: const Color(0xFFE63946), emoji: '🍽', label: 'Restaurant'),
+        child: _Pin(color: const Color(0xFFEB6534), emoji: '🍽', label: 'Restaurant'),
       ),
       Marker(
         point: LatLng(customerLat, customerLng),
         width: 44,
         height: 44,
-        child: _Pin(color: const Color(0xFF2A9D8F), emoji: '🏠', label: 'You'),
+        child: _Pin(color: const Color(0xFF5DA980), emoji: '🏠', label: 'You'),
       ),
     ];
     if (driverLat != null && driverLng != null) {
@@ -51,7 +51,7 @@ class DeliveryMap extends StatelessWidget {
         point: LatLng(driverLat!, driverLng!),
         width: 44,
         height: 44,
-        child: _Pin(color: const Color(0xFFF4A261), emoji: '🛵', label: 'Driver'),
+        child: _Pin(color: const Color(0xFFFBCB4D), emoji: '🛵', label: 'Driver'),
       ));
     }
 
@@ -77,7 +77,7 @@ class DeliveryMap extends StatelessWidget {
                     if (driverLat != null && driverLng != null) LatLng(driverLat!, driverLng!),
                     LatLng(customerLat, customerLng),
                   ],
-                  color: const Color(0xFFE63946).withValues(alpha: 0.5),
+                  color: const Color(0xFFEB6534).withValues(alpha: 0.5),
                   strokeWidth: 4,
                 ),
               ],
