@@ -50,6 +50,13 @@ flutter test
 (Add your own tests under `test/` — the order status machine and cart totals are
 pure and easy to test.)
 
+
+## Demo video
+
+<video src="https://raw.githubusercontent.com/sanjayksanthosh/delivery_tracker/master/docs/video/delivery-brag.mp4" poster="https://raw.githubusercontent.com/sanjayksanthosh/delivery_tracker/master/docs/video/delivery-brag.jpg" controls width="100%"></video>
+
+[Download the MP4](docs/video/delivery-brag.mp4) · [Poster](docs/video/delivery-brag.jpg)
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
