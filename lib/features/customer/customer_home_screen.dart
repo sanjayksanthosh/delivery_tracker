@@ -15,14 +15,39 @@ const _categories = [
   ('Desserts', '🍰'),
 ];
 
-class CustomerHomeScreen extends ConsumerWidget {
+class CustomerHomeScreen extends ConsumerStatefulWidget {
   const CustomerHomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CustomerHomeScreen> createState() => _CustomerHomeScreenState();
+}
+
+class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
+  int _selectedCategory = 0;
+  final _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToRestaurants() {
+    // Scroll down to restaurants section
+    _scrollController.animateTo(
+      600,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeOut,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final restaurants = ref.watch(restaurantsProvider);
     return CustomScrollView(
+      controller: _scrollController,
       slivers: [
+        // Top nav
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
@@ -53,41 +78,44 @@ class CustomerHomeScreen extends ConsumerWidget {
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-            child: Container(
-              height: 180,
-              decoration: BoxDecoration(
-                color: AppTheme.primaryYellow,
-                borderRadius: BorderRadius.circular(AppTheme.rXl),
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: Stack(
-                children: [
-                  Positioned(
-                    right: -20,
-                    bottom: -20,
-                    child: Text('🍔', style: TextStyle(fontSize: 160, color: Colors.white.withValues(alpha: 0.3))),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text('A special dish\nprepared for you',
-                            style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: AppTheme.textPrimary, height: 1.1)),
-                        const SizedBox(height: 8),
-                        Text('Discover the best food near you',
-                            style: TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
-                        const SizedBox(height: 12),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          decoration: BoxDecoration(color: AppTheme.darkButton, borderRadius: BorderRadius.circular(999)),
-                          child: const Text('Order now', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
-                        ),
-                      ],
+            child: GestureDetector(
+              onTap: _scrollToRestaurants,
+              child: Container(
+                height: 180,
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryYellow,
+                  borderRadius: BorderRadius.circular(AppTheme.rXl),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: Stack(
+                  children: [
+                    Positioned(
+                      right: -20,
+                      bottom: -20,
+                      child: Text('🍔', style: TextStyle(fontSize: 160, color: Colors.white.withValues(alpha: 0.3))),
                     ),
-                  ),
-                ],
+                    Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text('A special dish\nprepared for you',
+                              style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: AppTheme.textPrimary, height: 1.1)),
+                          const SizedBox(height: 8),
+                          Text('Discover the best food near you',
+                              style: TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
+                          const SizedBox(height: 12),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            decoration: BoxDecoration(color: AppTheme.darkButton, borderRadius: BorderRadius.circular(999)),
+                            child: const Text('Order now', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -100,7 +128,10 @@ class CustomerHomeScreen extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text('Categories', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
-                Text('See all', style: TextStyle(fontSize: 13, color: AppTheme.primaryOrange, fontWeight: FontWeight.w600)),
+                GestureDetector(
+                  onTap: () {},
+                  child: Text('See all', style: TextStyle(fontSize: 13, color: AppTheme.primaryOrange, fontWeight: FontWeight.w600)),
+                ),
               ],
             ),
           ),
@@ -115,23 +146,26 @@ class CustomerHomeScreen extends ConsumerWidget {
               separatorBuilder: (_, __) => const SizedBox(width: 12),
               itemBuilder: (context, i) {
                 final (name, emoji) = _categories[i];
-                final selected = i == 0;
-                return Column(
-                  children: [
-                    Container(
-                      width: 64,
-                      height: 64,
-                      decoration: BoxDecoration(
-                        color: selected ? AppTheme.primaryOrange : AppTheme.surface,
-                        borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: selected ? AppTheme.primaryOrange : AppTheme.border),
+                final selected = i == _selectedCategory;
+                return GestureDetector(
+                  onTap: () => setState(() => _selectedCategory = i),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 64,
+                        height: 64,
+                        decoration: BoxDecoration(
+                          color: selected ? AppTheme.primaryOrange : AppTheme.surface,
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(color: selected ? AppTheme.primaryOrange : AppTheme.border),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(emoji, style: const TextStyle(fontSize: 28)),
                       ),
-                      alignment: Alignment.center,
-                      child: Text(emoji, style: const TextStyle(fontSize: 28)),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(name, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: selected ? AppTheme.primaryOrange : AppTheme.textSecondary)),
-                  ],
+                      const SizedBox(height: 6),
+                      Text(name, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: selected ? AppTheme.primaryOrange : AppTheme.textSecondary)),
+                    ],
+                  ),
                 );
               },
             ),
@@ -145,7 +179,10 @@ class CustomerHomeScreen extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text('Popular foods', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
-                Text('See all', style: TextStyle(fontSize: 13, color: AppTheme.primaryOrange, fontWeight: FontWeight.w600)),
+                GestureDetector(
+                  onTap: () {},
+                  child: Text('See all', style: TextStyle(fontSize: 13, color: AppTheme.primaryOrange, fontWeight: FontWeight.w600)),
+                ),
               ],
             ),
           ),
@@ -160,53 +197,59 @@ class CustomerHomeScreen extends ConsumerWidget {
               separatorBuilder: (_, __) => const SizedBox(width: 12),
               itemBuilder: (context, i) {
                 final items = [
-                  ('Classic Burger', '🍔', '4.8', '₹199', '25 min'),
-                  ('Margherita', '🍕', '4.6', '₹249', '20 min'),
-                  ('French Fries', '🍟', '4.7', '₹99', '15 min'),
-                  ('Mango Smoothie', '🥤', '4.9', '₹129', '10 min'),
+                  ('Classic Burger', '🍔', '4.8', '₹199', '25 min', 0),
+                  ('Margherita', '🍕', '4.6', '₹249', '20 min', 1),
+                  ('French Fries', '🍟', '4.7', '₹99', '15 min', 2),
+                  ('Mango Smoothie', '🥤', '4.9', '₹129', '10 min', 3),
                 ];
-                final (name, emoji, rating, price, eta) = items[i];
-                return Container(
-                  width: 150,
-                  decoration: BoxDecoration(
-                    color: AppTheme.surface,
-                    borderRadius: BorderRadius.circular(AppTheme.rLg),
-                    border: Border.all(color: AppTheme.border),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        height: 110,
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryYellow.withValues(alpha: 0.25),
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(AppTheme.rLg)),
+                final (name, emoji, rating, price, eta, restIdx) = items[i];
+                return GestureDetector(
+                  onTap: () {
+                    final r = restaurants[restIdx % restaurants.length];
+                    Navigator.of(context).push(MaterialPageRoute(builder: (_) => RestaurantDetailScreen(restaurant: r)));
+                  },
+                  child: Container(
+                    width: 150,
+                    decoration: BoxDecoration(
+                      color: AppTheme.surface,
+                      borderRadius: BorderRadius.circular(AppTheme.rLg),
+                      border: Border.all(color: AppTheme.border),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          height: 110,
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryYellow.withValues(alpha: 0.25),
+                            borderRadius: const BorderRadius.vertical(top: Radius.circular(AppTheme.rLg)),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(emoji, style: const TextStyle(fontSize: 52)),
                         ),
-                        alignment: Alignment.center,
-                        child: Text(emoji, style: const TextStyle(fontSize: 52)),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(name, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700), maxLines: 1, overflow: TextOverflow.ellipsis),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                const Icon(Icons.star, size: 12, color: Color(0xFFF4A261)),
-                                const SizedBox(width: 2),
-                                Text(rating, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
-                                const Spacer(),
-                                Text(price, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppTheme.primaryOrange)),
-                              ],
-                            ),
-                            const SizedBox(height: 2),
-                            Text(eta, style: TextStyle(fontSize: 10, color: AppTheme.textSecondary)),
-                          ],
+                        Padding(
+                          padding: const EdgeInsets.all(10),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(name, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700), maxLines: 1, overflow: TextOverflow.ellipsis),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  const Icon(Icons.star, size: 12, color: Color(0xFFF4A261)),
+                                  const SizedBox(width: 2),
+                                  Text(rating, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+                                  const Spacer(),
+                                  Text(price, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppTheme.primaryOrange)),
+                                ],
+                              ),
+                              const SizedBox(height: 2),
+                              Text(eta, style: TextStyle(fontSize: 10, color: AppTheme.textSecondary)),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 );
               },
@@ -221,7 +264,10 @@ class CustomerHomeScreen extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text('Popular restaurants', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
-                Text('See all', style: TextStyle(fontSize: 13, color: AppTheme.primaryOrange, fontWeight: FontWeight.w600)),
+                GestureDetector(
+                  onTap: () {},
+                  child: Text('See all', style: TextStyle(fontSize: 13, color: AppTheme.primaryOrange, fontWeight: FontWeight.w600)),
+                ),
               ],
             ),
           ),
