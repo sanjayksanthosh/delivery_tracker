@@ -6,7 +6,7 @@ import '../../core/theme.dart';
 import '../../data/order_repository.dart';
 import '../auth/auth_provider.dart';
 import 'cart_provider.dart';
-import 'order_tracking_screen.dart';
+import 'checkout_screen.dart';
 
 class CartScreen extends ConsumerStatefulWidget {
   final Restaurant restaurant;
@@ -26,24 +26,12 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     super.dispose();
   }
 
-  Future<void> _checkout() async {
+  void _checkout() {
     final cart = ref.read(cartProvider);
     if (cart.isEmpty) return;
-    setState(() => _placing = true);
-    final auth = ref.read(currentUserProvider)!;
-    final repo = ref.read(orderRepositoryProvider);
-    final order = repo.placeOrder(
-      customerId: auth.id,
-      customerName: auth.name,
-      restaurant: widget.restaurant,
-      items: cart.map((c) => CartItem(item: c.item, qty: c.qty)).toList(),
-      address: _address.text.trim(),
-    );
-    ref.read(cartProvider.notifier).clear();
-    if (!mounted) return;
-    setState(() => _placing = false);
-    Navigator.of(context).pushReplacement(MaterialPageRoute(
-        builder: (_) => OrderTrackingScreen(orderId: order.id)));
+    final restaurants = ref.read(restaurantsProvider);
+    Navigator.of(context).push(MaterialPageRoute(
+        builder: (_) => CheckoutScreen(restaurant: restaurants.first)));
   }
 
   @override
@@ -96,14 +84,6 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                       ),
                     )),
                 const SizedBox(height: 8),
-                TextField(
-                  controller: _address,
-                  decoration: const InputDecoration(
-                    labelText: 'Delivery address',
-                    prefixIcon: Icon(Icons.location_on_outlined),
-                  ),
-                ),
-                const SizedBox(height: 16),
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -122,10 +102,8 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                 ),
                 const SizedBox(height: 16),
                 FilledButton(
-                  onPressed: _placing ? null : _checkout,
-                  child: _placing
-                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Text('Place order'),
+                  onPressed: cart.isEmpty ? null : _checkout,
+                  child: const Text('Proceed to checkout'),
                 ),
               ],
             ),

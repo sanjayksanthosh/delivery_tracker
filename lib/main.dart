@@ -5,7 +5,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'core/theme.dart';
 import 'features/auth/auth_provider.dart';
 import 'features/auth/onboarding_screen.dart';
-import 'features/auth/role_select_screen.dart';
 import 'features/customer/customer_shell.dart';
 import 'features/driver/driver_shell.dart';
 
